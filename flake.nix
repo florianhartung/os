@@ -34,11 +34,12 @@
         pkgs = import nixpkgs {
           inherit system overlays;
         };
-        rust-target = pkgs.pkgsStatic.stdenv.targetPlatform.rust.rustcTarget;
+        # Target for current system
+        # rust-target = pkgs.pkgsStatic.stdenv.targetPlatform.rust.rustcTarget;
         rust-toolchain = pkgs.rust-bin.stable.latest.default.override {
           extensions = [ "rust-src" ];
           targets = [
-            rust-target
+            "thumbv7em-none-eabihf"
           ];
         };
         treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;

@@ -39,7 +39,7 @@
         rust-toolchain = pkgs.rust-bin.stable.latest.default.override {
           extensions = [ "rust-src" ];
           targets = [
-            "thumbv7em-none-eabihf"
+            "x86_64-unknown-none"
           ];
         };
         treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
@@ -57,12 +57,19 @@
             packages = with pkgs; [
               stdenv.cc
               coreutils
+              gnumake
+
+              nasm
+              grub2
+              xorriso
+              qemu
 
               rust-toolchain
               rust-analyzer
               cargo-expand
               cargo-show-asm
               cargo-outdated
+              cargo-bootimage
             ];
           }
         );

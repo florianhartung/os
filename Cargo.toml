@@ -3,17 +3,17 @@ name = "os"
 version = "0.1.0"
 edition = "2024"
 
-[[bin]]
+[lib]
 name = "os"
-path = "src/main.rs"
+crate-type = ["staticlib"]
 test = false
 doctest = false
 bench = false
 
-[profile.dev]
-panic = "abort"
 
-[profile.release]
-panic = "abort"
-
-[dependencies]
+# [[bin]]
+# name = "os"
+# path = "src/main.rs"
+# test = false
+# doctest = false
+# bench = false

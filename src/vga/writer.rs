@@ -1,13 +1,13 @@
 use crate::vga::buffer::{BUFFER_HEIGHT, BUFFER_WIDTH, VgaBuffer, VgaChar, VgaColor};
 
-pub struct VgaWriter<'a> {
+pub struct VgaWriter {
     column_position: usize,
     fg_bg_colors: (VgaColor, VgaColor),
-    vga_buffer: &'a mut VgaBuffer,
+    vga_buffer: VgaBuffer,
 }
 
-impl<'a> VgaWriter<'a> {
-    pub fn new(vga_buffer: &'a mut VgaBuffer) -> Self {
+impl VgaWriter {
+    pub fn new(vga_buffer: VgaBuffer) -> Self {
         Self {
             column_position: 0,
             fg_bg_colors: (VgaColor::White, VgaColor::Black),
@@ -15,7 +15,7 @@ impl<'a> VgaWriter<'a> {
         }
     }
 
-    fn write_byte(&mut self, byte: u8) {
+    pub fn write_byte(&mut self, byte: u8) {
         match byte {
             b'\n' => self.new_line(),
             other_byte => {
@@ -60,9 +60,13 @@ impl<'a> VgaWriter<'a> {
                 .try_write(row_index, column_index, blank_char);
         }
     }
+
+    pub fn into_vga_buffer(self) -> VgaBuffer {
+        self.vga_buffer
+    }
 }
 
-impl<'a> core::fmt::Write for VgaWriter<'a> {
+impl core::fmt::Write for VgaWriter {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         for byte in s.as_bytes() {
             self.write_byte(*byte);

@@ -8,7 +8,17 @@ use crate::vga::{buffer::VgaBuffer, writer::VgaWriter};
 
 mod vga;
 
-static VGA_BUFFER: Once<Mutex<VgaBuffer>> = Once::new();
+static VGA_WRITER: Once<Mutex<VgaWriter>> = Once::new();
+
+macro_rules! print {
+    ($($arg:tt)*) => {{
+            let mut vga_writer_guard = VGA_WRITER.get()
+                .expect("writer to be initialized")
+                .lock();
+            vga_writer_guard.write_fmt(format_args!($($arg)*))
+                .expect("VGA writes to always be successful");
+    }};
+}
 
 #[unsafe(no_mangle)]
 pub extern "C" fn rust_main() {
@@ -16,27 +26,19 @@ pub extern "C" fn rust_main() {
         // SAFETY: The method is called once and exclusive access to VGA buffer is
         // ensured.
         let vga_buffer = unsafe { vga::buffer::take() };
-        VGA_BUFFER.call_once(|| Mutex::new(vga_buffer));
+        let vga_writer = Mutex::new(VgaWriter::new(vga_buffer));
+        VGA_WRITER.call_once(|| vga_writer);
     }
 
-    let mut vga_buffer_guard = VGA_BUFFER.wait().lock();
-    let mut writer = VgaWriter::new(&mut *vga_buffer_guard);
+    print!("Hello world");
 
-    writeln!(writer, "Hello").unwrap();
-    writeln!(writer, "  World!").unwrap();
+    // writeln!(writer, "  World!").unwrap();
 
     loop {}
 }
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    let vga_buffer = VGA_BUFFER.wait();
-    // TODO this is likely unsound. we might be able to call vga::buffer::take()
-    // a second time?
-    unsafe { vga_buffer.force_unlock() };
-    let mut vga_buffer_guard = vga_buffer.lock();
-    let mut writer = VgaWriter::new(&mut *vga_buffer_guard);
-
-    let _ = write!(writer, "{info}");
+    print!("\n{info}");
     loop {}
 }
